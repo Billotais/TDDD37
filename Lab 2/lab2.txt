@@ -1,0 +1,59 @@
+
+3)
+
+mysql> CREATE TABLE jbmanager (id int, bonus int DEFAULT 0, constraint pk_manager primary key (id));
+mysql> ALTER TABLE jbmanager ADD CONSTRAINT fk_manager_emplyee FOREIGN KEY (id) REFERENCES jbemployee(id);
+mysql> INSERT INTO jbmanager (id) SELECT id FROM jbemployee WHERE id IN (SELECT manager FROM jbdept) UNION SELECT id FROM jbemployee WHERE id IN (SELECT manager FROM jbemployee);
+
+mysql> ALTER TABLE jbemployee ADD CONSTRAINT fk_manager FOREIGN KEY (manager) REFERENCES jbmanager(id);
+
+mysql> ALTER TABLE jbdept DROP FOREIGN KEY fk_dept_mgr;
+
+mysql> ALTER TABLE jbdept ADD CONSTRAINT fk_dept_mgr FOREIGN KEY (manager) REFERENCES jbmanager(id);
+
+We do need to set the bonus attribute to a default value, since we don't have the same number of columns in jbmanager (2 columns) and the values we want to add (1 columns). 
+Without a default value, we can't know what to put in column bonus. 
+4)
+mysql> UPDATE jbmanager SET bonus=bonus+10000 WHERE id IN (SELECT manager FROM jbdept);
+
+5)
+
+// New table for customer
+mysql> CREATE TABLE jbcustomer (id int, name varchar(20), address varchar(20), city int, constraint pk_customer primary
+key (id));
+
+// New table for account
+mysql> CREATE TABLE jbaccount (id int, balance double, owner int, constraint pk_account pri
+mary key (id));
+
+// New table for transaction (even if this is a total specialisation, we are still allowed to use this "technique")
+// We could have ignored the table jbtransaction and put everything in the subcalsses tables, but this would have
+// added a lot more foreign keys constraints.
+mysql> CREATE TABLE jbtransaction (id int, amount double, sdate timestamp DEFAULT CURRENT_TIMESTAMP, employee int, accou
+nt int, constraint pk_transaction primary key (id));
+
+// Subclasses of transaction
+mysql> CREATE TABLE jbdeposit (id int, constraint pk_deposit primary key (id));
+mysql> ALTER TABLE jbdeposit ADD CONSTRAINT fk_deposit_transaction FOREIGN KEY (id) REFERENCES jbtransaction(id);
+mysql> CREATE TABLE jbwithdrawal (id int, constraint pk_deposit primary key (id));
+mysql> ALTER TABLE jbwithdrawal ADD CONSTRAINT fk_withdrawal_transaction FOREIGN KEY (id) REFERENCES jbtransaction(id);
+
+// Start by removing every constraint jbdebit is connected to
+mysql> ALTER TABLE jbdebit DROP FOREIGN KEY fk_debit_employee;
+mysql> ALTER TABLE jbsale DROP FOREIGN KEY fk_sale_debit;
+
+// Delete jbdebit to create a new one
+mysql> DROP TABLE jbdebit;
+mysql> CREATE TABLE jbdebit (id int, constraint pk_deposit primary key (id));
+mysql> ALTER TABLE jbdebit ADD CONSTRAINT fk_debit_transaction FOREIGN KEY (id) REFERENCES jbtransaction(id);
+
+// Recreate the constraint from jbsale, need to delete data to do that
+mysql> delete from jbsale;
+mysql> ALTER TABLE jbsale ADD CONSTRAINT fk_sale_debit FOREIGN KEY (debit) REFERENCES jbdebit(id);
+
+// Add the constraints for all the new relations
+mysql> ALTER TABLE jbtransaction ADD CONSTRAINT fk_transaction_employee FOREIGN KEY (employee) REFERENCES jbemployee(id);
+mysql> ALTER TABLE jbtransaction ADD CONSTRAINT fk_transaction_account FOREIGN KEY (account) REFERENCES jbaccount(id);
+mysql> ALTER TABLE jbaccount ADD CONSTRAINT fk_account_customer FOREIGN KEY (owner) REFERENCES jbcustomer(id);
+mysql> ALTER TABLE jbcustomer ADD CONSTRAINT fk_customer_city FOREIGN KEY (city) REFERENCES jbcity(id);
+

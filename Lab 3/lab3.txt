@@ -1,0 +1,57 @@
+Ex 1)
+a) (A, B) -> C and (B) -> (D), with (A, B) the primary key
+    - It is in 1NF, because we don't have non-atomic values
+    - D depends on B which is only a part of the primary key, but not the whole primary key => not in 2NF
+c) (A, B) -> (C, D) and D -> B with (A, b) the primary key
+    - No non-prime attribute depends on a set of attribute that isn't a part of a superkey => it is in 3NF
+    - It isn't in BCNF because D -> B and D isn't part of a superkey.
+
+Ex 2)
+a)
+Let's try with X = {A}, and compute the attribute closure using the functional dependencies.
+- Initialy : X* = {A}
+- A->D     : X* = {AD}
+- D->AE    : X* = {ADE}
+- E->F     : X* = {ADEF}
+- AB->C    : X* = {ADEF} => {A} can't be a primary key.
+Let's try with X = {AB}, and compute the attribute closure using the functional dependencies.
+- Initialy : X* = {AB}
+- A->D     : X* = {ABD}
+- D->AE    : X* = {ABDE}
+- E->F     : X* = {ABDEF}
+- AB->C    : X* = {ABCDEF} => {AB} is a primary key.
+
+b)
+
+We can find the following candidate keys : (AB) and (BD)
+
+A->D and D->AE => A->E // This is a problem, a non-prime attribute (E) depends on a part of a candidate key (A)
+
+=> We now have the following relations:
+    R1(A, B, C, D, F) with F1={(AB->C),(A->D),(D->A),(D->F)} and candidate keys (AB) and (BD)
+    R2(A, E)          with F2={(A->E)}                       and candidate keys (A)
+
+D->F // This is a problem, a non-prime attribute (F) depends on a part of a candidate key (D)
+=> We now have the following relations:
+    R1(A, B, C, D)    with F1={(AB->C),(A->D),(D->A)} and candidate keys (AB) and (BD)
+    R2(A, E)          with F2={(A->E)}                and candidate keys (A)
+    R3(D, F)          with F3={(D->F)}                and candidate keys (D)
+
+c)
+
+R1 is in 3CNF (the inly non prime attribute (C) depends on AB which is a superkey)
+R2 and R3 are also in 3NF (E and F both depends on A and respectively D, which are superkeys)
+
+d)
+
+R2 and R3 are already in BCNF form (A and D are superkeys)
+R1 isn't in BCNF form (A isn't a superkey, D isn't a superkey)
+R1 will become :
+    R11(A, B, C)      with F1={(AB->C)}               and candidate key (AB)
+    R12(A, D)         with F12={(A->D), (D->A)}       and candidate key (AD)
+
+So in the end we have :
+    R11(A, B, C)      with F1={(AB->C)}               and candidate key (AB)
+    R12(A, D)         with F12={(A->D),(D->A)}        and candidate key (AD)
+    R2(A, E)          with F2={(A->E)}                and candidate key (A)
+    R3(D, F)          with F3={(D->F)}                and candidate key (D)

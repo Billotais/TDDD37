@@ -1,0 +1,109 @@
+Loïs Bilat (loibi806)
+
+Johannes Scherm (johsc567)
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+We had to change quite a bit the ER-diagram to make it compatible with the different procedures' parameters
+So the included diagram pdf doesn't exactly correspond to the one we submitted for assignment 4c),
+
+but we didn't really have a choice as we didn't want to change the procedures' parameters
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// Question 8)
+
+
+
+a)
+
+First you need to make sure that the access to the database is correctly restricted, so that unauthorized people can't access.
+ Moreover we can encrypt the credit card data using a encryption algorithm like AES and a secret key.
+
+
+
+b)
+
+- If we have multiple application that access the database, and they all do the same actions on it, we don't have to implement again the procedures in each application.
+ We can implement it once in the database and use it in every application.
+
+- By using stored procedures, we don't need to give the application access to classical "SELECT, DELETE, ..." operations. Thus add a level of security, because we can control more easily what
+ data can be accessed and seen, and it allows the application to get some information without seeing intermediate data used by the procedure.
+
+- All the computation is done on the server instead of on the client. This is better if the client accessing the database isn't a powerful device.
+
+
+
+// Question 9)
+
+
+
+b)
+
+No, because we haven't committed the transaction from terminal A, so it didn't really apply to the database.
+
+
+
+c)
+
+Since we don't see the new reservation in terminal B, nothing happens when we try to modify it because the WHERE clause doesn't find anything.
+ The transactions are isolated from the real database until they are committed, so we can't access the changes done in terminal A from anywhere else.
+
+
+
+// Question 10)
+
+
+
+a)
+
+No overbooking occurred, because the second terminal called addPayment after the first one did, so when it checked if there were enough seats on the plane, it could see that the first terminal had already booked 21 seats, leaving only 19 seats available - not enough the second booking.
+
+
+
+b)
+
+Yes, it could theoretically happen if we could execute both addPayment calls exactly at the same time. That way, none of them would see that seats are already booked, and both would accept the payment, resulting in an overbooking.
+
+
+
+c)
+
+We would need to do the following, but we didn't manage to implement it.
+
+Fist, script 1 runs all the addReservation/addPasseneger/addContact statements. Then script 2 does the same,
+and finally both scripts run addPayment at exactly the same time. This can partially be done by adding a SELECT SLEEP(5) just before the addPayment call. That way, both scripts add their passengers before any payment could be done.
+ When it is then time to make the actual payment, both script will see that no payment has been done yet, and they will both add their payment at the same time.
+
+
+We wanted to simulate an overbooking by running each script in a transaction and then committing both. That way, both scripts could have done the addPayment at a different time, without seeing the other one's payment, because no commit would have been done yet.
+ Then, both transaction would be commited, resulting in an overbooking. But this is not possible, because mysql locks all the tables during a transaction, so we can't run the script on the second terminal while we haven't commited the script on the first terminal.
+
+
+
+d)
+
+As explained before, if we start a transaction, it will lock all the tables. Consequently, the only change we need to make is to put a "START TRANSACTION;" at the beginning of the script and a "COMMIT;" at the end.
+
+
+
+// Comments:
+
+We encountered an issue that we didn't know how to properly solve, so it might have been a reason why we didn't manage to do all the exercise steps exactly as requested. When we run the second script, all the "addPassenger" calls didn't worked since we already had the passenger in the database, and duplicates are not allowed.
+The problem would also happen if we add the same passengers in two different reservations, the INSERT into the Passenger table wouldn't work the second time.
+We fixed it during our testing by using "INSERT IGNORE" for every insert request, but from what we found online it isn't a safe idea, but we didn't talked about this issue during the course.
+In the final submitted version we didn't included it because it seemed to us more like a temporary fixed than a real solution to the problem.
+We also had problem with the "START TRANSACTION" that apparently lock all the table in mysql. Because of that we couldn't do the problem 10 properly, since it was impossible to have an overbooking with both scripts running in a transaction.
+ This didn't correspond to what we saw during the course, so we were a little lost and didn't have the occasion to ask an assistant during the labs.
+
+
+
+// Secondary Index:
+A relation that could really use a secondary index is Route. Indeed, everytime we want to access data from this table, we never use the rid field, but instead we use rarrival_airport and rdeparture_airport.
+If we add a secondary index on e.g. rarrival_airport, the time needed to search a route would be much faster, because we could directly access blocks that might contain the correct value.
+Currently, since the rid is never used in our queries, we always need to go trough all the table to find the correct route, which is time-consuming.

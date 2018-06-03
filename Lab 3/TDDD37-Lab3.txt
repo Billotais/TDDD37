@@ -1,0 +1,103 @@
+﻿TDDD37: Database Technology
+Lab 3, Loïs Bilat (loibi806), Johannes Scherm (johsc567)
+
+Ex 1)
+a) (A, B) -> C and B -> D, with (A, B) the primary key
+    - It is in 1NF, because we don't have non-atomic values
+    - D depends on B which is only a part of the primary key, but not the whole primary key => not in 2NF
+
+b)	(A, B) -> C, C -> D, with (A, B) the primary key
+	- It is in 2NF since no non-prime attributes is functionally dependent on only a part of a candidate key. (C depends on both A and B).
+	- D depends on C which doesn't belong to a superkey. Therefore it does not fulfill the requirements for 3NF.
+
+c) (A, B) -> (C, D) and D -> B with (A, B) the primary key
+    - No non-prime attribute depends on a set of attribute that isn't a part of a superkey => it is in 3NF
+    - It isn't in BCNF because D -> B and D isn't part of a superkey.
+
+Ex 2)
+a)
+Let's try with X = {A}, and compute the attribute closure using the functional dependencies.
+- Initialy : X* = {A}
+- A->D     : X* = {AD}
+- D->AE    : X* = {ADE}
+- E->F     : X* = {ADEF}
+- AB->C    : X* = {ADEF} => {A} can't be a primary key.
+
+Let's try with X = {AB}, and compute the attribute closure using the functional dependencies.
+- Initialy : X* = {AB}
+- A->D     : X* = {ABD}
+- D->AE    : X* = {ABDE}
+- E->F     : X* = {ABDEF}
+- AB->C    : X* = {ABCDEF} => {AB} is a primary key.
+
+b)
+We can find the following candidate keys : (AB) and (BD)
+
+A->D and D->AE => A->E // This is a problem, a non-prime attribute (E) depends on a part of a candidate key (A)
+
+=> We now have the following relations:
+    R1(A, B, C, D, F) with F1={(AB->C),(A->D),(D->A),(D->F)} and candidate keys (AB) and (BD)
+    R2(A, E)          with F2={(A->E)}                       and candidate keys (A)
+
+D->F // This is a problem, a non-prime attribute (F) depends on a part of a candidate key (D)
+=> We now have the following relations:
+    R1(A, B, C, D)    with F1={(AB->C),(A->D),(D->A)} and candidate keys (AB) and (BD)
+    R2(A, E)          with F2={(A->E)}                and candidate keys (A)
+    R3(D, F)          with F3={(D->F)}                and candidate keys (D)
+
+c)
+R1 is in 3CNF (the inly non prime attribute (C) depends on AB which is a superkey)
+R2 and R3 are also in 3NF (E and F both depends on A and respectively D, which are superkeys)
+
+d)
+R2 and R3 are already in BCNF form (A and D are superkeys)
+R1 isn't in BCNF form (A isn't a superkey, D isn't a superkey)
+R1 will become :
+    R11(A, B, C)      with F1={(AB->C)}               and candidate key (AB)
+    R12(A, D)         with F12={(A->D), (D->A)}       and candidate key (AD)
+
+So in the end we have :
+    R11(A, B, C)      with F1={(AB->C)}               and candidate key (AB)
+    R12(A, D)         with F12={(A->D),(D->A)}        and candidate key (AD)
+    R2(A, E)          with F2={(A->E)}                and candidate key (A)
+    R3(D, F)          with F3={(D->F)}                and candidate key (D)
+
+Ex 3)
+a)
+BOOK is in 1NF since it does not contain any non-atomic values (requirement for 1NF) and violates the rules for 2NF:
+BOOK's candidate key consists of the primary keys {Title#, Author#}. However, there are non-primary attributes that
+depend on a part of a candidate key - e.g. AuthorName depends on Author#
+
+b)
+- Is BOOK in 2NF?
+	No, because non-primary attributes depend on parts of a candidate key.
+	Decompose BOOK into
+		- BOOK1(Author#, AuthorName) with
+			> Author# -> AuthorName and
+			> candidate key: Author#
+		- BOOK2(Title#, Author#, Title, BookType, Price, Publisher) with
+			> Title# -> Title, BookType, Publisher
+			> BookType -> Price and
+			> candidate key: Title#
+	Both are now in 2NF.
+
+- Normalize to 3NF
+	BOOK1 is already in 3NF,
+	BOOK2 is not because of the functional dependency BookType -> Price (BookType is not a superkey!)
+	Decompose BOOK2 into
+		- BOOK2A(Title#, Author#, Title, BookType, Publisher) with
+			> Title# -> Title, BookType, Publisher and
+			> candidate key: Title#
+		- BOOK2B(BookType, Price) with
+			> BookType -> Price and
+			> candidate key: BookType
+	BOOK1, BOOK2A and BOOK2B are in 3NF now.
+
+- BCNF
+	All three fulfill already the requirements for BCNF since for every FD X->Y, X is a superkey of the relation
+	that the FD is associated with.
+
+- Normalized relation in BCNF:
+	> BOOK1(Author#, AuthorName) with FD: Author# -> AuthorName and candidate key: Author#
+	> BOOK2A(Title#, Title, BookType, Publisher) with FD: Title# -> Title, BookType, Publisher and candidate key: Title#
+	> BOOK2B(BookType, Price) with FD: BookType -> Price and candidate key: BookType
